@@ -31,11 +31,6 @@ jobs:
           npm -v
           npx cap sync ios
 
-      - name: 🍎 Install Native CocoaPods (Apple SDKs)
-        run: |
-          cd ios/App
-          pod install
-
       - name: 🚀 Execute Xcode Compilation
         run: |
           cd ios/App
