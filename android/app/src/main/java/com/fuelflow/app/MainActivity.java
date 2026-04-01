@@ -1,4 +1,4 @@
-package com.fuelflow.app;
+package com.mlwhittle.fuelflow;
 
 import com.getcapacitor.BridgeActivity;
 
