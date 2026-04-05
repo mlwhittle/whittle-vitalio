@@ -46,7 +46,7 @@ function AppContent() {
     localStorage.setItem('fuelflow_onboarded', 'true');
     setHasOnboarded(true);
     // 30-Day Free Trial: Allow them into the dashboard directly unless 30 days have expired
-    const isAppleReviewAccount = authUser?.email === 'apple@fuelflow.site';
+    const isAppleReviewAccount = localStorage.getItem('fuelflow_demo_account') === 'true';
     if (!isPremium && isTrialExpired && !isAppleReviewAccount) {
       setCurrentView('premiumGate:dashboard');
     } else {
@@ -79,7 +79,7 @@ function AppContent() {
   // Navigate to a view - check premium status
   const navigateToView = (view) => {
     // APPLE REVIEW BYPASS - Ensure they never hit a paywall while reviewing
-    const isAppleReviewAccount = authUser?.email === 'apple@fuelflow.site';
+    const isAppleReviewAccount = localStorage.getItem('fuelflow_demo_account') === 'true';
     
     if (isFeaturePremium(view) && !isPremium && isTrialExpired && !isAppleReviewAccount) {
       // Show premium gate for this feature only if the 30-day Free Trial is mathematically over

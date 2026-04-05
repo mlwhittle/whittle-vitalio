@@ -21,6 +21,15 @@ const Login = ({ onSwitch, onSkip }) => {
 
         setLoading(true);
         setError('');
+
+        // APPLE REVIEW BYPASS - Instant access without hitting Firebase Auth
+        if (email.toLowerCase() === 'apple@fuelflow.site' && password === 'FuelFlowReview26!') {
+            localStorage.setItem('fuelflow_skipAuth', 'true');
+            localStorage.setItem('fuelflow_demo_account', 'true');
+            window.location.reload();
+            return;
+        }
+
         const { error: authError } = await signInWithEmail(email, password);
 
         if (authError) {
