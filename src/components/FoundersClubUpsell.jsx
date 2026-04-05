@@ -91,9 +91,9 @@ export default function FoundersClubUpsell({ onDecline }) {
                         Restore Purchases
                     </button>
                     <div>
-                        <a href="https://church-website-357206.web.app/terms.html" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'underline' }}>Terms of Use</a>
+                        <a href="https://fuelflow-landing-7a13c.web.app/terms.html" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'underline' }}>Terms of Use</a>
                         {' | '}
-                        <a href="https://church-website-357206.web.app/privacy.html" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'underline' }}>Privacy Policy</a>
+                        <a href="https://fuelflow-landing-7a13c.web.app/privacy.html" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'underline' }}>Privacy Policy</a>
                     </div>
                 </div>
             </div>

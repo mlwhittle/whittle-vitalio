@@ -1,4 +1,5 @@
 import { useSubscription } from '../context/SubscriptionContext';
+import { Capacitor } from '@capacitor/core';
 import './PremiumGate.css';
 
 const PREMIUM_FEATURE_INFO = {
@@ -76,10 +77,10 @@ export default function PremiumGate({ feature, onBack, onFoundersClick }) {
                 <div className="premium-gate-divider" />
 
                 <div className="premium-gate-pricing">
-                    <span className="premium-gate-price">12 Days Free</span>
-                    <span className="premium-gate-period">, then $19.99/month</span>
+                    <span className="premium-gate-price">Free Trial Available</span>
+                    {!Capacitor.isNativePlatform() && <span className="premium-gate-period">, then $19.99/month</span>}
                 </div>
-                <p className="premium-gate-subtitle">FuelFlow Premium Trial</p>
+                <p className="premium-gate-subtitle">FuelFlow Premium Membership</p>
 
                 <ul className="premium-gate-features">
                     <li>📸 AI Food Photo Scanner</li>
@@ -93,10 +94,10 @@ export default function PremiumGate({ feature, onBack, onFoundersClick }) {
                 </ul>
 
                 <button className="premium-gate-subscribe-btn" onClick={subscribe}>
-                    ✨ Start 12-Day Free Trial
+                    ✨ Start Fast Tracking Your Goals
                 </button>
 
-                {onFoundersClick && (
+                {!Capacitor.isNativePlatform() && onFoundersClick && (
                     <button className="premium-gate-founders-btn" onClick={onFoundersClick} style={{ 
                         background: 'transparent',
                         border: '2px solid #eab308',
@@ -119,13 +120,13 @@ export default function PremiumGate({ feature, onBack, onFoundersClick }) {
                 </button>
 
                 <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#6b7280' }}>
-                    <button className="premium-gate-back-btn" onClick={restorePurchases} style={{ padding: 0, marginTop: '8px', textDecoration: 'underline', color: '#9ca3af' }}>
+                    <button className="premium-gate-back-btn" onClick={restorePurchases} style={{ padding: 0, marginTop: '8px', textDecoration: 'underline', color: '#9ca3af', border: 'none', background: 'transparent', cursor: 'pointer' }}>
                         Restore Purchases
                     </button>
                     <div style={{ marginTop: '8px' }}>
-                        <a href="https://church-website-357206.web.app/terms.html" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'underline' }}>Terms of Use</a>
+                        <a href="https://fuelflow-landing-7a13c.web.app/terms.html" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'underline' }}>Terms of Use</a>
                         {' | '}
-                        <a href="https://church-website-357206.web.app/privacy.html" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'underline' }}>Privacy Policy</a>
+                        <a href="https://fuelflow-landing-7a13c.web.app/privacy.html" target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'underline' }}>Privacy Policy</a>
                     </div>
                 </div>
             </div>
