@@ -27,6 +27,11 @@ jobs:
       - name: Sync Capacitor iOS Logic
         run: npx cap sync ios
 
+      - name: Install CocoaPods Dependencies
+        run: |
+          cd ios/App
+          pod install
+
       - name: Setup ASC Auth Key
         env:
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
