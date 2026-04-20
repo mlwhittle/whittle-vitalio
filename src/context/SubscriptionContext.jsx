@@ -54,6 +54,7 @@ export const SubscriptionProvider = ({ children }) => {
     const [isTrialExpired, setIsTrialExpired] = useState(false);
     const [subscriptionLoading, setSubscriptionLoading] = useState(true);
     const [subscriptionData, setSubscriptionData] = useState(null);
+    const [nativeOfferings, setNativeOfferings] = useState(null);
 
     // Watch for subscription changes directly from Stripe via Firebase Extension
     useEffect(() => {
@@ -130,6 +131,11 @@ export const SubscriptionProvider = ({ children }) => {
                 await Purchases.configure({ apiKey: RC_PUBLIC_SDK_KEY });
             }
             console.log('RevenueCat initialized for Apple App Store.');
+            
+            const offerings = await Purchases.getOfferings();
+            if (offerings.current !== null && offerings.current.availablePackages.length > 0) {
+                setNativeOfferings(offerings.current.availablePackages);
+            }
         } catch (e) {
             console.error('RevenueCat config error:', e);
         }
@@ -150,23 +156,15 @@ export const SubscriptionProvider = ({ children }) => {
             if (Capacitor.isNativePlatform()) {
                 console.log('Initiating native App Store purchase via RevenueCat...');
                 try {
-                    const offerings = await Purchases.getOfferings();
-                    if (offerings.current !== null) {
-                        // Normally you would dynamically match the package. For now, we mock the success block.
-                        const rcPackage = packageId === PRICING_TIERS.annual.id
-                            ? offerings.current.annual
-                            : offerings.current.monthly;
-                            
-                        if (rcPackage) {
-                            const { customerInfo } = await Purchases.purchasePackage({ aPackage: rcPackage });
-                            if (typeof customerInfo.entitlements.active['premium'] !== "undefined") {
-                                setIsPremium(true);
-                            }
-                        } else {
-                            alert("App Store package not configured yet. This is a beta preview.");
+                    // Expecting packageId to be the actual `PurchasesPackage` object passed from UI
+                    if (packageId && packageId.product) {
+                        const { customerInfo } = await Purchases.purchasePackage({ aPackage: packageId });
+                        if (typeof customerInfo.entitlements.active['premium'] !== "undefined") {
+                            setIsPremium(true);
+                            setSubscriptionData({ status: 'active', plan: 'App Store Subscription' });
                         }
                     } else {
-                        alert("No native App Store offerings available at the moment.");
+                        alert("Invalid package selected. Please try again.");
                     }
                 } catch (e) {
                     if (!e.userCancelled) {
@@ -256,6 +254,7 @@ export const SubscriptionProvider = ({ children }) => {
         isTrialExpired,
         subscriptionLoading,
         subscriptionData,
+        nativeOfferings,
         subscribe,
         restorePurchases,
         manageSubscription,

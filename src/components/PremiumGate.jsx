@@ -56,7 +56,7 @@ const PREMIUM_FEATURE_INFO = {
 };
 
 export default function PremiumGate({ feature, onBack, onFoundersClick }) {
-    const { subscribe, restorePurchases } = useSubscription();
+    const { subscribe, restorePurchases, nativeOfferings } = useSubscription();
     const featureInfo = PREMIUM_FEATURE_INFO[feature] || {
         icon: '⭐',
         name: 'Premium Feature',
@@ -93,9 +93,28 @@ export default function PremiumGate({ feature, onBack, onFoundersClick }) {
                     <li>👥 Social Community</li>
                 </ul>
 
-                <button className="premium-gate-subscribe-btn" onClick={subscribe}>
-                    ✨ Start Fast Tracking Your Goals
-                </button>
+                {Capacitor.isNativePlatform() && nativeOfferings && nativeOfferings.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', marginTop: '16px' }}>
+                        {nativeOfferings.map((pkg) => (
+                            <button 
+                                key={pkg.identifier} 
+                                className="premium-gate-subscribe-btn" 
+                                onClick={() => subscribe(pkg)}
+                                style={{
+                                    background: pkg.packageType === 'ANNUAL' ? 'linear-gradient(135deg, #FFD700, #FF8C00)' : '#1e293b',
+                                    color: pkg.packageType === 'ANNUAL' ? '#0f1b3d' : '#fff',
+                                    border: pkg.packageType === 'ANNUAL' ? 'none' : '1px solid rgba(255,255,255,0.1)'
+                                }}
+                            >
+                                {pkg.packageType === 'ANNUAL' ? '👑' : '✨'} {pkg.product.title} - {pkg.product.priceString}
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <button className="premium-gate-subscribe-btn" onClick={() => subscribe()} style={{ marginTop: '16px' }}>
+                        ✨ Start Fast Tracking Your Goals
+                    </button>
+                )}
 
                 {!Capacitor.isNativePlatform() && onFoundersClick && (
                     <button className="premium-gate-founders-btn" onClick={onFoundersClick} style={{ 

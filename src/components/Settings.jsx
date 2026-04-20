@@ -9,7 +9,7 @@ import './Settings.css';
 
 const Settings = ({ setCurrentView }) => {
     const { user, setUser } = useApp();
-    const { isPremium, subscribe, manageSubscription, subscriptionData } = useSubscription();
+    const { isPremium, subscribe, manageSubscription, subscriptionData, nativeOfferings } = useSubscription();
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDeleteAccount = async () => {
@@ -349,20 +349,43 @@ const Settings = ({ setCurrentView }) => {
                             </div>
                         </div>
 
-                        <button
-                            className="btn btn-primary"
-                            onClick={subscribe}
-                            style={{
-                                width: '100%',
-                                background: 'linear-gradient(135deg, #FFD700, #FF8C00)',
-                                color: '#0f1b3d',
-                                fontWeight: 700,
-                                fontSize: '1rem',
-                                padding: '0.9rem'
-                            }}
-                        >
-                            ✨ Upgrade to Premium — $19.99/month
-                        </button>
+                        {Capacitor.isNativePlatform() && nativeOfferings && nativeOfferings.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+                                {nativeOfferings.map((pkg) => (
+                                    <button 
+                                        key={pkg.identifier} 
+                                        className="btn btn-primary" 
+                                        onClick={() => subscribe(pkg)}
+                                        style={{
+                                            width: '100%',
+                                            background: pkg.packageType === 'ANNUAL' ? 'linear-gradient(135deg, #FFD700, #FF8C00)' : '#1e293b',
+                                            color: pkg.packageType === 'ANNUAL' ? '#0f1b3d' : '#fff',
+                                            fontWeight: 700,
+                                            fontSize: '1rem',
+                                            padding: '0.9rem',
+                                            border: pkg.packageType === 'ANNUAL' ? 'none' : '1px solid rgba(255,255,255,0.1)'
+                                        }}
+                                    >
+                                        {pkg.packageType === 'ANNUAL' ? '👑' : '✨'} Upgrade: {pkg.product.title} - {pkg.product.priceString}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => subscribe()}
+                                style={{
+                                    width: '100%',
+                                    background: 'linear-gradient(135deg, #FFD700, #FF8C00)',
+                                    color: '#0f1b3d',
+                                    fontWeight: 700,
+                                    fontSize: '1rem',
+                                    padding: '0.9rem'
+                                }}
+                            >
+                                ✨ Upgrade to Premium — $19.99/month
+                            </button>
+                        )}
                         
                         <button
                             onClick={() => setCurrentView('foundersClub')}
