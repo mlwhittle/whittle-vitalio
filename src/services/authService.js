@@ -13,7 +13,7 @@ import {
 } from 'firebase/auth';
 import { SignInWithApple } from '@capacitor-community/apple-sign-in';
 import { auth, db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -92,6 +92,51 @@ export const signInWithAppleNative = async () => {
     } catch (error) {
         console.error('Apple sign-in error:', error);
         return { user: null, error: error.message || 'Apple Sign-In cancelled.' };
+    }
+};
+
+/**
+ * Delete User Account & Local Data
+ */
+export const deleteUserAccount = async () => {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error('No user is logged in.');
+
+        const uid = user.uid;
+
+        // 1. Delete Firestore records
+        const userRef = doc(db, 'users', uid);
+        await deleteDoc(userRef);
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        const userMetricsRef = doc(db, 'userMetrics', `${uid}_${todayStr}`);
+        await deleteDoc(userMetricsRef).catch(() => {});
+
+        // 2. Delete Auth Account
+        // Note: if Stripe Extension connects, it will observe this Auth trigger.
+        await user.delete();
+
+        // 3. Clear Local Storage
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('fuelflow_') || key.startsWith('whittlevitalio_'))) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+
+        return { error: null };
+    } catch (error) {
+        console.error('Delete account error:', error);
+        
+        // Handle "requires-recent-login" safely
+        if (error.code === 'auth/requires-recent-login') {
+            return { error: 'For security reasons, please log out and log back in before deleting your account.' };
+        }
+        
+        return { error: error.message || 'Failed to delete account. Please try again.' };
     }
 };
 

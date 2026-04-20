@@ -1,12 +1,40 @@
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useSubscription } from '../context/SubscriptionContext';
-import { User, Target, Activity as ActivityIcon, Download, Upload } from 'lucide-react';
+import { User, Target, Activity as ActivityIcon, Download, Upload, AlertTriangle } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { deleteUserAccount } from '../services/authService';
 import { calculateBMR, calculateTDEE, calculateCalorieGoal, calculateMacros, calculateBMI, getBMICategory } from '../utils/calculations';
 import './Settings.css';
 
 const Settings = ({ setCurrentView }) => {
     const { user, setUser } = useApp();
     const { isPremium, subscribe, manageSubscription, subscriptionData } = useSubscription();
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDeleteAccount = async () => {
+        if (isPremium && Capacitor.isNativePlatform()) {
+            const goToSub = window.confirm("Apple Subscriptions cannot be canceled automatically. Please tap OK to open App Store Subscriptions and cancel your Whittle Vitalio plan, then return here and tap Delete Account again.");
+            if (goToSub) {
+                manageSubscription();
+                return;
+            }
+        }
+
+        const confirmDelete = window.confirm("WARNING: Irreversible Action\n\nThis will permanently delete your account, wipe all stored metrics from this device and the Cloud, and instantly cancel web subscriptions. Are you absolutely certain?");
+        
+        if (confirmDelete) {
+            setIsDeleting(true);
+            const { error } = await deleteUserAccount();
+            if (error) {
+                alert(error);
+                setIsDeleting(false);
+            } else {
+                alert("Your account has been successfully deleted.");
+                window.location.reload(); 
+            }
+        }
+    };
 
     const handleUserUpdate = (updates) => {
         const updatedUser = { ...user, ...updates };
@@ -386,6 +414,30 @@ const Settings = ({ setCurrentView }) => {
                         />
                     </label>
                 </div>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="settings-section card" style={{ border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                <div className="section-header">
+                    <AlertTriangle size={24} color="#ef4444" />
+                    <h3 style={{ color: '#ef4444' }}>Danger Zone</h3>
+                </div>
+                <p className="section-description" style={{ marginBottom: '1rem' }}>
+                    Permanently delete your account, settings, active subscriptions, and all logged data. This action cannot be undone.
+                </p>
+                <button 
+                    className="btn btn-outline" 
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleting}
+                    style={{ 
+                        color: '#ef4444', 
+                        borderColor: 'rgba(239, 68, 68, 0.5)',
+                        width: '100%',
+                        justifyContent: 'center'
+                    }}
+                >
+                    {isDeleting ? 'Deleting Account...' : 'Delete Account'}
+                </button>
             </div>
         </div>
     );
