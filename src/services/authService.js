@@ -7,8 +7,11 @@ import {
     signOut,
     sendPasswordResetEmail,
     onAuthStateChanged,
-    updateProfile
+    updateProfile,
+    OAuthProvider,
+    signInWithCredential
 } from 'firebase/auth';
+import { SignInWithApple } from '@capacitor-community/apple-sign-in';
 import { auth } from '../firebase';
 
 const googleProvider = new GoogleAuthProvider();
@@ -52,6 +55,41 @@ export const signInWithGoogle = async () => {
     } catch (error) {
         console.error('Google sign-in error:', error.code, error.message);
         return { user: null, error: getErrorMessage(error.code) };
+    }
+};
+
+/**
+ * Sign in with Apple (Native iOS via Capacitor)
+ */
+export const signInWithAppleNative = async () => {
+    try {
+        const result = await SignInWithApple.authorize({
+            clientId: 'com.mlwhittle.fuelflow',
+            scopes: 'email name',
+            nonce: 'whittlevitalio123'
+        });
+        
+        if (result.response && result.response.identityToken) {
+            const provider = new OAuthProvider('apple.com');
+            const credential = provider.credential({
+                idToken: result.response.identityToken,
+                rawNonce: 'whittlevitalio123'
+            });
+            
+            const userCredential = await signInWithCredential(auth, credential);
+            
+            // Store the Apple user identifier locally as requested
+            if (result.response.user) {
+                localStorage.setItem('whittlevitalio_apple_id', result.response.user);
+            }
+            
+            return { user: userCredential.user, error: null };
+        } else {
+            throw new Error('Apple Sign-In authorization failed.');
+        }
+    } catch (error) {
+        console.error('Apple sign-in error:', error);
+        return { user: null, error: error.message || 'Apple Sign-In cancelled.' };
     }
 };
 
