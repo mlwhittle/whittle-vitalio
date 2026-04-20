@@ -64,11 +64,34 @@ function AppContent() {
 
   // Listen for auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthChange((user) => {
-      setAuthUser(user);
+    console.log('[App Init] 1/3 - Starting Firebase Auth listener');
+    
+    // 10-second fallback timeout to prevent hanging on "Preparing your sanctuary"
+    const timeoutId = setTimeout(() => {
+      console.warn('[App Init] WARNING - Auth listener timed out after 10s! Forcing app to unlock bypass.');
       setAuthLoading(false);
-    });
-    return () => unsubscribe();
+    }, 10000);
+
+    let unsubscribe = () => {};
+
+    try {
+      unsubscribe = onAuthChange((user) => {
+        console.log('[App Init] 2/3 - Auth check resolved. User ID:', user ? user.uid : 'null');
+        setAuthUser(user);
+        setAuthLoading(false);
+        clearTimeout(timeoutId);
+      });
+    } catch (err) {
+      console.error('[App Init] FATAL ERROR during Firebase auth load:', err);
+      setAuthLoading(false);
+      clearTimeout(timeoutId);
+    }
+    
+    return () => {
+      console.log('[App Init] 3/3 - Cleaning up auth listener bindings');
+      unsubscribe();
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const handleSkipAuth = () => {

@@ -61,6 +61,7 @@ export const SubscriptionProvider = ({ children }) => {
         let unsubscribe = () => { };
 
         const setupSubscriptionListener = async () => {
+            console.log('[Sub Init] 1/4 - Booting real-time subscription bridge (Firebase Stripe)');
             const user = auth.currentUser;
             if (user) {
                 // Mathematically Evaluate 30-Day Cardless Free Trial based on account creation
@@ -72,38 +73,57 @@ export const SubscriptionProvider = ({ children }) => {
                     setIsTrialExpired(true); // Failsafe protect
                 }
 
+                // 10-second timeout fallback for the subscription loading state
+                const timeoutId = setTimeout(() => {
+                    console.warn('[Sub Init] WARNING - Subscription check timed out after 10s! Defaulting fallback.');
+                    setSubscriptionLoading(false);
+                }, 10000);
+
                 const subscriptionsRef = collection(db, 'customers', user.uid, 'subscriptions');
 
-                unsubscribe = onSnapshot(subscriptionsRef, (snapshot) => {
-                    let activeSub = null;
+                try {
+                    console.log('[Sub Init] 2/4 - Attaching Firestore Snapshot block');
+                    unsubscribe = onSnapshot(subscriptionsRef, (snapshot) => {
+                        console.log('[Sub Init] 3/4 - Firestore Snapshot triggered');
+                        let activeSub = null;
 
-                    snapshot.docs.forEach((doc) => {
-                        const subData = doc.data();
-                        if (subData.status === 'active' || subData.status === 'trialing') {
-                            activeSub = subData;
+                        snapshot.docs.forEach((doc) => {
+                            const subData = doc.data();
+                            if (subData.status === 'active' || subData.status === 'trialing') {
+                                activeSub = subData;
+                            }
+                        });
+
+                        if (activeSub || (user && user.email === 'mlwhittle@gmail.com')) {
+                            setIsPremium(true);
+                            setSubscriptionData(activeSub || { status: 'vip', plan: 'Lifetime Access' });
+                            localStorage.setItem('fuelflow_premium', 'true');
+                        } else {
+                            setIsPremium(false);
+                            setSubscriptionData(null);
+                            localStorage.setItem('fuelflow_premium', 'false');
                         }
+                        
+                        console.log('[Sub Init] 4/4 - Snapshot resolved! Removing loaders.');
+                        setSubscriptionLoading(false);
+                        clearTimeout(timeoutId);
+                    }, (error) => {
+                        console.error("[Sub Init] Subscription listener error:", error);
+                        // Fallback to local storage if listener fails (e.g. permission error during boot)
+                        const cached = localStorage.getItem('fuelflow_premium');
+                        if (cached === 'true') {
+                            setIsPremium(true);
+                        }
+                        setSubscriptionLoading(false);
+                        clearTimeout(timeoutId);
                     });
-
-                    if (activeSub || (user && user.email === 'mlwhittle@gmail.com')) {
-                        setIsPremium(true);
-                        setSubscriptionData(activeSub || { status: 'vip', plan: 'Lifetime Access' });
-                        localStorage.setItem('fuelflow_premium', 'true');
-                    } else {
-                        setIsPremium(false);
-                        setSubscriptionData(null);
-                        localStorage.setItem('fuelflow_premium', 'false');
-                    }
+                } catch (err) {
+                    console.error('[Sub Init] FATAL ERROR attaching subscription hook:', err);
                     setSubscriptionLoading(false);
-                }, (error) => {
-                    console.error("Subscription listener error:", error);
-                    // Fallback to local storage if listener fails (e.g. permission error during boot)
-                    const cached = localStorage.getItem('fuelflow_premium');
-                    if (cached === 'true') {
-                        setIsPremium(true);
-                    }
-                    setSubscriptionLoading(false);
-                });
+                    clearTimeout(timeoutId);
+                }
             } else {
+                console.log('[Sub Init] No active Auth profile. Skipping subscription attach.');
                 setIsPremium(false);
                 setIsTrialExpired(true); // Failsafe
                 setSubscriptionData(null);
