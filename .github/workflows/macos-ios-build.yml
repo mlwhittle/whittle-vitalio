@@ -67,9 +67,6 @@ jobs:
             -authenticationKeyID $ASC_KEY_ID \
             -authenticationKeyIssuerID $ASC_ISSUER_ID \
             DEVELOPMENT_TEAM=6LW5TYA8KT \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="Whittle Vitalio App Store" \
             archive
 
       - name: Export IPA
