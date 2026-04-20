@@ -12,7 +12,8 @@ import {
     signInWithCredential
 } from 'firebase/auth';
 import { SignInWithApple } from '@capacitor-community/apple-sign-in';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -78,9 +79,10 @@ export const signInWithAppleNative = async () => {
             
             const userCredential = await signInWithCredential(auth, credential);
             
-            // Store the Apple user identifier locally as requested
+            // Store the Apple user identifier in Firestore to survive reinstalls
             if (result.response.user) {
-                localStorage.setItem('whittlevitalio_apple_id', result.response.user);
+                const userRef = doc(db, 'users', userCredential.user.uid);
+                await setDoc(userRef, { appleUserId: result.response.user }, { merge: true });
             }
             
             return { user: userCredential.user, error: null };
