@@ -59,9 +59,18 @@ export const SubscriptionProvider = ({ children }) => {
     // Watch for subscription changes directly from Stripe via Firebase Extension
     useEffect(() => {
         let unsubscribe = () => { };
+        let timeoutId;
 
         const setupSubscriptionListener = async () => {
             console.log('[Sub Init] 1/4 - Booting real-time subscription bridge (Firebase Stripe)');
+            
+            // Unconditional 5-second fallback timeout
+            timeoutId = setTimeout(() => {
+                console.log('[Sub Init] 5s timeout fired');
+                console.warn('[Sub Init] WARNING - Subscription check timed out after 5s! Defaulting fallback.');
+                setSubscriptionLoading(false);
+            }, 5000);
+
             const user = auth.currentUser;
             if (user) {
                 // Mathematically Evaluate 30-Day Cardless Free Trial based on account creation
@@ -72,12 +81,6 @@ export const SubscriptionProvider = ({ children }) => {
                 } else {
                     setIsTrialExpired(true); // Failsafe protect
                 }
-
-                // 10-second timeout fallback for the subscription loading state
-                const timeoutId = setTimeout(() => {
-                    console.warn('[Sub Init] WARNING - Subscription check timed out after 10s! Defaulting fallback.');
-                    setSubscriptionLoading(false);
-                }, 10000);
 
                 const subscriptionsRef = collection(db, 'customers', user.uid, 'subscriptions');
 
@@ -128,6 +131,7 @@ export const SubscriptionProvider = ({ children }) => {
                 setIsTrialExpired(true); // Failsafe
                 setSubscriptionData(null);
                 setSubscriptionLoading(false);
+                clearTimeout(timeoutId);
             }
         };
 
@@ -138,6 +142,7 @@ export const SubscriptionProvider = ({ children }) => {
         return () => {
             authUnsubscribe();
             unsubscribe();
+            if (timeoutId) clearTimeout(timeoutId);
         };
     }, []);
 
