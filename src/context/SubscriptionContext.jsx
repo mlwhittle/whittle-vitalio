@@ -52,7 +52,7 @@ const PREMIUM_FEATURES = [
 export const SubscriptionProvider = ({ children }) => {
     const [isPremium, setIsPremium] = useState(false);
     const [isTrialExpired, setIsTrialExpired] = useState(false);
-    const [subscriptionLoading, setSubscriptionLoading] = useState(true);
+    const [subscriptionLoading, setSubscriptionLoading] = useState(false);
     const [subscriptionData, setSubscriptionData] = useState(null);
     const [nativeOfferings, setNativeOfferings] = useState(null);
 
