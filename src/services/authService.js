@@ -29,7 +29,7 @@ export const signUpWithEmail = async (email, password, displayName) => {
         return { user: result.user, error: null };
     } catch (error) {
         console.error('Sign up error:', error.code, error.message);
-        return { user: null, error: getErrorMessage(error.code) };
+        return { user: null, error: error.message };
     }
 };
 

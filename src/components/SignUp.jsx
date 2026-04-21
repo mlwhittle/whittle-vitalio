@@ -127,6 +127,8 @@ const SignUp = ({ onSwitch, onSkip }) => {
                         <button type="submit" className="btn btn-primary btn-lg auth-btn" disabled={loading}>
                             {loading ? <Loader size={20} className="animate-spin" /> : 'Create Account'}
                         </button>
+                        
+                        {error && <p style={{ color: 'red', textAlign: 'center', marginTop: '15px', fontWeight: 'bold' }}>{error}</p>}
                     </form>
 
                     <div className="auth-divider">
